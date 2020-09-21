@@ -5,6 +5,7 @@ import TYPES from "./types/types";
 import {createConnection} from "typeorm";
 import {config} from 'dotenv'
 import {LaughingBreadEmoji} from "./LaughingBreadEmoji";
+import {httpServer} from "./features/httpServer";
 
 config()
 
@@ -18,6 +19,8 @@ createConnection().then(async () => {
         })
 
 }).catch(e => logger.error(e))
+
+httpServer.listen(3000)
 
 
 
