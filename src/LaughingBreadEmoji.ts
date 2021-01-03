@@ -70,7 +70,7 @@ export class LaughingBreadEmoji extends Client {
           await rivenHunter.startHunting(urlEntity, this, async (rivenMods, channel) => {
             const embeds = rivenMods.map(mod => makeEmbed(mod.auction, mod.bids))
             for (const embed of embeds) {
-              await channel.send(`<@${userId}>`, embed)
+              await channel.send(embed)
             }
           })
         }
