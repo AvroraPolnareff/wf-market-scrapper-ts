@@ -3,9 +3,7 @@ const path = require("path");
 module.exports = {
     type: "postgres",
     url: process.env.DATABASE_URL,
-    extra: {
-        ssl: true
-    },
+    ssl: true,
     synchronize: true,
     "entities": [
         path.join(__dirname, "/src/db/entity/**/*{.ts,.js}")
