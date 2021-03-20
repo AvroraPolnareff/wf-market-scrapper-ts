@@ -83,13 +83,14 @@ export class UserTracker {
             const profile = await this.trackOnce(prey[0])
             console.log({name: prey[0].nickname ,pred: prey[0].status, current: profile.status})
             if (prey[0].status !== profile.status) {
+                console.log({statusBool: prey[0].status !== profile.status})
                 await preyRepository.update({userId, channelId, guildId, nickname}, {
                     status: profile.status,
                     lastLogin: profile.last_seen
                 })
                 onStatusChanged(profile, channel)
             }
-        }, 5000)
+        }, 8000)
     }
 
 

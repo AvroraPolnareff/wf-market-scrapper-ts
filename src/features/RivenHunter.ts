@@ -75,7 +75,7 @@ export class RivenHunter {
       if (rivenMods.length) {
         onNewRivenMods(rivenMods, channel)
       }
-    }, 10000)
+    }, 20000)
   }
 
   public list = async (channelId: string, guildId?: string): Promise<MessageEmbed> => {
