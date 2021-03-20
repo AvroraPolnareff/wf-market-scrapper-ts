@@ -1,0 +1,28 @@
+version: "2"
+services:
+  app:
+    env_file:
+      - .env
+    environment:
+      DATABASE_URL: postgres://pguser:password@db:5432/pguser
+    build:
+      context: .
+    volumes:
+      - ./src:/app/src
+      - ./ormconfig.js:/app/src/ormconfig.js
+    depends_on:
+      - db
+
+  db:
+    image: postgres:12.6-alpine
+    restart: always
+    environment:
+      POSTGRES_PASSWORD: password
+      POSTGRES_USER: pguser
+      PGDATA: /var/lib/postgresql/data/pgdata
+    volumes:
+    - db-volume:/var/lib/postgresql/data/pgdata
+
+volumes:
+  db-volume:
+
