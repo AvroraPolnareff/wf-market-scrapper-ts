@@ -21,7 +21,8 @@ decorate(injectable(), EventEmitter)
 export class LaughingBreadEmoji extends Client {
   constructor(
     @inject(TYPES.Logger) private logger: Logger,
-    @inject(TYPES.PQueue) private promiseQueue: PQueue,
+    @inject(TYPES.PQueueTracker) private promiseQueueTracker: PQueue,
+    @inject(TYPES.PQueueHunter) private promiseQueueHunter: PQueue,
     @inject(TYPES.CommandDispatcher) private commandDispatcher: CommandDispatcher,
     @inject(TYPES.clientConfig) options?: ClientOptions
   ) {
@@ -30,8 +31,11 @@ export class LaughingBreadEmoji extends Client {
   }
 
   private initClient = () => {
-    this.promiseQueue.on('active', () => {
-      this.logger.debug(`Working on item.  Size: ${this.promiseQueue.size}  Pending: ${this.promiseQueue.pending}`);
+    this.promiseQueueTracker.on('active', () => {
+      this.logger.debug(`Tracker: Size: ${this.promiseQueueTracker.size}  Pending: ${this.promiseQueueTracker.pending}`);
+    })
+    this.promiseQueueHunter.on('active', () => {
+      this.logger.debug(`Hunter: Size: ${this.promiseQueueHunter.size}  Pending: ${this.promiseQueueHunter.pending}`);
     })
 
     this.on('ready', async () => {
@@ -39,7 +43,11 @@ export class LaughingBreadEmoji extends Client {
       const admins = process.env.ADMIN_ID.split(',')
       for (let adminId of admins) {
         const admin = await this.users.fetch(adminId)
-        await admin.send(`Logged in as ${this.user.tag}!`)
+        try {
+          await admin.send(`Logged in as ${this.user.tag}!`)
+        } catch (e) {
+          console.log("cannot send message", admin)
+        }
       }
 
       const userRepository = getRepository(UserEntity)
@@ -51,22 +59,22 @@ export class LaughingBreadEmoji extends Client {
         const user = await this.users.fetch(userId)
         let preys = await preyRepository.find({userId: userId})
 
-        for (const prey of preys) {
-          const userTracker = new UserTracker(userId, this.promiseQueue, this)
-          await userTracker.startTracking(prey, async (profile, channel) => {
-            if (profile.status === "offline") {
-              await channel.send(`<@${prey.userId}>, ${prey.nickname} just went **OFFLINE** on Warframe Market.`)
-            } else if (profile.status === "online") {
-              await channel.send(`<@${prey.userId}>, ${prey.nickname} is currently **ONLINE** on Warframe Market!`)
-            } else {
-              await channel.send(`<@${prey.userId}>, ${prey.nickname} is currently **ONLINE IN GAME** on Warframe Market!`)
-            }
-          })
-        }
+        // for (const prey of preys) {
+        //   const userTracker = new UserTracker(userId, this)
+        //   await userTracker.startTracking(prey, async (profile, channel) => {
+        //     if (profile.status === "offline") {
+        //       await channel.send(`<@${prey.userId}>, ${prey.nickname} just went **OFFLINE** on Warframe Market.`)
+        //     } else if (profile.status === "online") {
+        //       await channel.send(`<@${prey.userId}>, ${prey.nickname} is currently **ONLINE** on Warframe Market!`)
+        //     } else {
+        //       await channel.send(`<@${prey.userId}>, ${prey.nickname} is currently **ONLINE IN GAME** on Warframe Market!`)
+        //     }
+        //   })
+        // }
 
         const urlEntities = await urlRepository.find({userId})
         for (let urlEntity of urlEntities) {
-          const rivenHunter = new RivenHunter(user.id, this.promiseQueue)
+          const rivenHunter = new RivenHunter(user.id)
           await rivenHunter.startHunting(urlEntity, this, async (rivenMods, channel) => {
             const embeds = rivenMods.map(mod => makeEmbed(mod.auction, mod.bids))
             for (const embed of embeds) {

@@ -12,14 +12,13 @@ export class Add implements Command{
     prefix: string = "usertrack";
 
     public constructor(
-        private promiseQueue: PQueue,
         private logger: Logger
     ) {
     }
 
     async run(msg: Message, args?: string[]): Promise<void> {
         try {
-            const userTracker = new UserTracker(msg.author.id, this.promiseQueue, msg.client)
+            const userTracker = new UserTracker(msg.author.id, msg.client)
             const prey = await userTracker.add(args[0], msg.channel.id, msg.guild?.id ?? "")
             await msg.reply(`**${msg.author.username}** has started tracking **${prey.nickname}**. The online status updates will be posted below.`)
             await userTracker.startTracking(prey, async (profile, channel) => {

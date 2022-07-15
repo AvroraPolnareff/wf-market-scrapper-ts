@@ -6,13 +6,16 @@ import {displayingPrice} from "../functions/embed";
 import {WMAPI} from "../api/WMAPI";
 import {RivenListRepository} from "../db/repository/RivenListRepository";
 import {fetchChannel} from "../functions/fetchChannel";
+import {injectable} from "inversify"
+import TYPES from "../types/types"
+import container from "../inversify.config"
 
-type AuctionWithBids = { auction: Auction, bids: Bid[] }
+type AuctionWithBids = { auction: Auction, bids?: Bid[] }
 
+@injectable()
 export class RivenHunter {
   constructor(
     private userId: string,
-    private promiseQueue: PQueue,
   ) {}
 
   public add = async (url: string, platinumLimit: number, channelId: string, guildId?: string) => {
@@ -37,15 +40,20 @@ export class RivenHunter {
   }
 
   public huntOnce = async (urlEntity: MarketUrl): Promise<AuctionWithBids[]> => {
-    return await this.promiseQueue.add(async () => {
+    const promiseQueue: PQueue = container.get(TYPES.PQueueHunter)
+    return await promiseQueue.add(async () => {
       const rivenRepository = getCustomRepository(RivenListRepository)
       const rivenMods = await rivenRepository.fetchNewRivenMods(urlEntity.url)
-      const api = new WMAPI()
       const auctionsWithBids: AuctionWithBids[] = []
       for (const el of rivenMods) {
         if (displayingPrice(el) <= urlEntity.platinumLimit) {
-          const bids = await api.bids(el.id)
-          auctionsWithBids.push({auction: el, bids: bids})
+          if (el.top_bid) {
+            const api = container.get<WMAPI>(TYPES.WMAPI)
+            const bids = await api.bids(el.id)
+            auctionsWithBids.push({auction: el, bids: bids})
+          } else {
+            auctionsWithBids.push({auction: el})
+          }
         }
       }
       return auctionsWithBids
@@ -57,7 +65,7 @@ export class RivenHunter {
     client: Client,
     onNewRivenMods: (rivenMods: AuctionWithBids[], channel: TextChannel | DMChannel) => void
   ) => {
-    const timer = setInterval(async () => {
+    const fn = async () => {
       const urlRepository = getRepository(MarketUrl)
 
       const newUrlEntity = await urlRepository.find(urlEntity)
@@ -75,7 +83,9 @@ export class RivenHunter {
       if (rivenMods.length) {
         onNewRivenMods(rivenMods, channel)
       }
-    }, 20000)
+    }
+    await fn()
+    const timer = setInterval(fn, 100000)
   }
 
   public list = async (channelId: string, guildId?: string): Promise<MessageEmbed> => {

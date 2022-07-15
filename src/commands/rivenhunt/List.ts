@@ -12,11 +12,10 @@ export class List implements Command {
     public prefix = "rivenhunt"
 
     constructor(
-        private promiseQueue: PQueue,
     ) {}
 
     async run(msg: Message, args?: string[]): Promise<void> {
-        const rivenHunter = new RivenHunter(msg.author.id, this.promiseQueue)
+        const rivenHunter = new RivenHunter(msg.author.id)
         let embed : MessageEmbed
         if (msg.guild) {
             embed = await rivenHunter.list(msg.channel.id, msg.guild.id)

@@ -4,12 +4,12 @@ import {RivenHunter} from "../../features/RivenHunter";
 import PQueue from "p-queue";
 import {Message} from "discord.js";
 import {makeEmbed} from "../../functions/embed";
+import container from "../../inversify.config"
+import TYPES from "../../types/types"
 
 export class Add implements Command {
 
-  constructor(
-    private promiseQueue: PQueue,
-  ) {}
+  constructor() {}
 
   public name = 'add'
   public description = "This command will add the given link to the **Riven Hunter** list. Once there is a change, it will post a message containing an update."
@@ -17,7 +17,8 @@ export class Add implements Command {
   public args = "url"
 
   async run(msg: Message, args: string[]): Promise<void> {
-    const rivenHunter = new RivenHunter(msg.author.id, this.promiseQueue)
+
+    const rivenHunter = new RivenHunter(msg.author.id)
     const newUrl = args[0]
     let platinumLimit : number = -1
     while (platinumLimit > 1147483647 || platinumLimit < 0 ) {

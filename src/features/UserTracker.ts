@@ -5,12 +5,13 @@ import {Profile} from "./RivenHunter";
 import PQueue from "p-queue";
 import {WMAPI} from "../api/WMAPI";
 import {fetchChannel} from "../functions/fetchChannel";
+import container from "../inversify.config"
+import TYPES from "../types/types"
 
 
 export class UserTracker {
     constructor(
         private userId : string,
-        private promiseQueue: PQueue,
         private client: Client
     ) {
     }
@@ -24,7 +25,7 @@ export class UserTracker {
     public add = async (profileURL: string, channelId: string, guildId: string = '') => {
         const preyRepository = getRepository(Prey)
         const preys  = await preyRepository.find({userId: this.userId})
-        const api = new WMAPI()
+        const api = container.get<WMAPI>(TYPES.WMAPI)
         const nickname = profileURL.slice(profileURL.lastIndexOf('/') + 1)
         const profile = await api.profile(nickname)
         if ( preys.some(prey => prey.url === profileURL && prey.channelId === channelId && prey.guildId === guildId)) {
@@ -56,8 +57,9 @@ export class UserTracker {
     }
 
     public trackOnce = async (prey: Prey) : Promise<Profile> => {
-        return await this.promiseQueue.add(async () => {
-            const api = new WMAPI()
+        const promiseQueue: PQueue = container.get(TYPES.PQueueTracker)
+        return await promiseQueue.add(async () => {
+            const api = container.get<WMAPI>(TYPES.WMAPI)
             return await api.profile(prey.nickname)
         })
     }
@@ -88,7 +90,7 @@ export class UserTracker {
                 })
                 onStatusChanged(profile, channel)
             }
-        }, 8000)
+        }, 15000)
     }
 
 

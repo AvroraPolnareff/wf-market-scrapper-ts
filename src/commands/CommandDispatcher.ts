@@ -29,19 +29,17 @@ export class CommandDispatcherImpl implements CommandDispatcher {
     private logger: Logger
 
     constructor(
-        @inject(TYPES.PQueue) promiseQueue: PQueue,
         @inject(TYPES.Logger) logger: Logger
     ) {
         this.logger = logger
-        this.promiseQueue = promiseQueue
         this.commands = [
             Ping,
-            new Add(this.promiseQueue),
-            new List(this.promiseQueue),
-            new Remove(this.promiseQueue),
-            new UserTrackAdd(this.promiseQueue, this.logger),
-            new UserTrackList(this.promiseQueue),
-            new UserTrackRemove(this.promiseQueue)
+            new Add(),
+            new List(),
+            new Remove(),
+            new UserTrackAdd( this.logger),
+            new UserTrackList(),
+            new UserTrackRemove()
 
         ]
     }

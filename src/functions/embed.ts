@@ -3,7 +3,7 @@ import {MessageEmbed} from "discord.js";
 import {Attribute, Auction, Bid} from "../features/RivenHunter";
 import {weaponAttributes, weapons} from "../utility/weapon";
 
-export const makeEmbed = (riven: Auction, bids: Bid[]) : MessageEmbed => {
+export const makeEmbed = (riven: Auction, bids?: Bid[]) : MessageEmbed => {
     const weapon = weapons.find(weapon => weapon.url_name === riven.item.weapon_url_name)
 
     let embed = {
@@ -23,15 +23,15 @@ export const makeEmbed = (riven: Auction, bids: Bid[]) : MessageEmbed => {
             "icon_url": "https://cdn.discordapp.com/attachments/408460110222852096/690891636904951808/logo-black.webp"
         },
         "author": {
-            "name": `Warframe Market: [${weapon.item_name} ${riven.item.name}]`,
+            "name": `Warframe Market: [${weapon?.item_name || riven.item.weapon_url_name} ${riven.item.name}]`,
             "url": `https://warframe.market/auction/${riven.id}`,
             "icon_url": `https://cdn.discordapp.com/attachments/408460110222852096/690891636904951808/logo-black.webp`
         },
         "thumbnail": {
-            "url": `https://warframe.market/static/assets/${weapon.icon}`
+            "url": `https://warframe.market/static/assets/${weapon?.icon}`
         }
     }
-    if (bids.length) {
+    if (bids?.length) {
       embed.fields.push(bidsAsField(bids))
     }
     return new MessageEmbed(embed)

@@ -1,5 +1,5 @@
 import "reflect-metadata"
-import {Container} from "inversify";
+import {Container, injectable} from "inversify"
 import TYPES from "./types/types";
 import {CommandDispatcher, CommandDispatcherImpl} from "./commands/CommandDispatcher";
 import PQueue from "p-queue";
@@ -8,9 +8,13 @@ import {config} from 'dotenv'
 import {LogglyLogger} from "./utility/LogglyLogger";
 import {ConsoleLogger} from "./utility/ConsoleLogger";
 import {LaughingBreadEmoji} from "./LaughingBreadEmoji";
+import {WMAPI} from "./api/WMAPI"
 config()
 
 const container = new Container()
+
+const robin =
+  {currentProxy: 0}
 
 container.bind(TYPES.clientConfig).toConstantValue({})
 if (process.env.LOGGLY_TOKEN && process.env.LOGGLY_DOMAIN) {
@@ -21,9 +25,11 @@ if (process.env.LOGGLY_TOKEN && process.env.LOGGLY_DOMAIN) {
     container.bind<Logger>(TYPES.Logger).to(ConsoleLogger)
 }
 container.bind<CommandDispatcher>(TYPES.CommandDispatcher).to(CommandDispatcherImpl)
-container.bind<PQueue>(TYPES.PQueue).toConstantValue(new PQueue({concurrency: 1}))
-
+container.bind<PQueue>(TYPES.PQueueHunter).toConstantValue(new PQueue({concurrency: 3}))
+container.bind<PQueue>(TYPES.PQueueTracker).toConstantValue(new PQueue({concurrency: 3}))
+container.bind<{currentProxy: number}>(TYPES.RoundRobin).toConstantValue(robin)
 container.bind<LaughingBreadEmoji>(TYPES.LaughingBreadEmoji).to(LaughingBreadEmoji)
+container.bind<WMAPI>(TYPES.WMAPI).toConstantValue(new WMAPI())
 
 
 

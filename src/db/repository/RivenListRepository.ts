@@ -3,9 +3,15 @@ import {RivenList} from "../entity/RivenList";
 import {Auction} from "../../features/RivenHunter";
 import {WMAPI} from "../../api/WMAPI";
 import * as _ from "lodash";
+import {inject, injectable} from "inversify"
+import TYPES from "../../types/types"
+import container from "../../inversify.config"
 
 @EntityRepository(RivenList)
 export class RivenListRepository extends Repository<RivenList> {
+    constructor() {
+        super()
+    }
     async findRivenListByUrl(url: string): Promise<Auction[]> {
         const entity = await this.findOne({url: url})
         if (entity) {
@@ -28,8 +34,8 @@ export class RivenListRepository extends Repository<RivenList> {
     }
 
     async fetchNewRivenMods(marketUrl: string)  {
-        const api = new WMAPI()
         const oldRivenList = await this.findRivenListByUrl(marketUrl)
+        const api = container.get<WMAPI>(TYPES.WMAPI)
         const actualRivenList = await api.auctions(marketUrl)
 
         if (oldRivenList) {

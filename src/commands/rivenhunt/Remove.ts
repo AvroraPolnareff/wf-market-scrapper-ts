@@ -12,13 +12,12 @@ export class Remove implements Command {
     public args = "index"
 
     constructor(
-        private promiseQueue: PQueue,
     ) {}
 
 
     async run(msg: Message, args?: string[]): Promise<void> {
         const index = parseInt(args[0]) - 1
-        const rivenHunter = new RivenHunter(msg.author.id, this.promiseQueue)
+        const rivenHunter = new RivenHunter(msg.author.id)
         if (msg.guild) {
             await rivenHunter.remove(index, msg.channel.id, msg.guild.id)
         } else {
