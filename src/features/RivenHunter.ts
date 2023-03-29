@@ -105,6 +105,11 @@ export class RivenHunter {
     const urls = await urlRepository.find({userId: this.userId, channelId: channelId, guildId: guildId ?? ''})
     return await urlRepository.delete(urls[index])
   }
+
+  public removeAll = async (channelId: string, guildId?: string): Promise<DeleteResult> => {
+    const urlRepository = getRepository(MarketUrl)
+    return await urlRepository.delete({userId: this.userId, channelId: channelId, guildId: guildId ?? ''})
+  }
 }
 
 export interface Profile {

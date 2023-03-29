@@ -16,8 +16,8 @@ export class Remove implements Command {
 
 
     async run(msg: Message, args?: string[]): Promise<void> {
-        const index = parseInt(args[0]) - 1
         const rivenHunter = new RivenHunter(msg.author.id)
+        const index = parseInt(args[0]) - 1
         try {
             await rivenHunter.remove(index, msg.channel.id, msg.guild?.id)
         } catch {
