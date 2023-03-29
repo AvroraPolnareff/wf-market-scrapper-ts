@@ -94,7 +94,7 @@ export class RivenHunter {
     const embed = new MessageEmbed()
     embed.setTitle('Riven Urls')
     urls.forEach((url, index) => {
-      embed.addField(`**${index + 1}:**`, `*${url.url}*`)
+      embed.addField(`**${index + 1}:**`, `*${url.url}* \n **Platinum limit**: ${url.platinumLimit}`, )
     })
     return embed
   }
