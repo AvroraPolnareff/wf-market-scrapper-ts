@@ -14,7 +14,6 @@ import {Add as UserTrackAdd} from "./usertrack/Add"
 import {List as UserTrackList} from "./usertrack/List"
 import {Remove as UserTrackRemove} from "./usertrack/Remove"
 
-
 export interface CommandDispatcher {
     commands: Command[]
 
@@ -86,7 +85,7 @@ export class CommandDispatcherImpl implements CommandDispatcher {
         for (const command of this.commands) {
             const name = `${command.prefix ?? ""} ${command.name}`
             const aliases = command.aliases ? `\n Aliases: ${command.aliases.reduce((prev, curr) => prev + ", " + curr)}.` : ""
-            const args = command.args ? ` [${command.args}]` : ""
+            const args = command.args ? ` [${Array.isArray(command.args) ? command.args.join(", ") : command.args}]` : ""
             embed.addField(name + args , command.description + aliases)
         }
         return embed

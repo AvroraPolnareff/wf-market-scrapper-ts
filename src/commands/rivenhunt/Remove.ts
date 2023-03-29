@@ -18,11 +18,12 @@ export class Remove implements Command {
     async run(msg: Message, args?: string[]): Promise<void> {
         const index = parseInt(args[0]) - 1
         const rivenHunter = new RivenHunter(msg.author.id)
-        if (msg.guild) {
-            await rivenHunter.remove(index, msg.channel.id, msg.guild.id)
-        } else {
-            await rivenHunter.remove(index, msg.channel.id)
+        try {
+            await rivenHunter.remove(index, msg.channel.id, msg.guild?.id)
+        } catch {
+            await msg.reply("Error while removing url.")
         }
+
 
         await msg.reply('URL successfully deleted')
     }
