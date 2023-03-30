@@ -12,6 +12,7 @@ services:
       - ./ormconfig.js:/app/src/ormconfig.js
     depends_on:
       - db
+    restart: "unless-stopped"
 
   db:
     image: postgres:12.6-alpine

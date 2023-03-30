@@ -25,8 +25,8 @@ if (process.env.LOGGLY_TOKEN && process.env.LOGGLY_DOMAIN) {
     container.bind<Logger>(TYPES.Logger).to(ConsoleLogger)
 }
 container.bind<CommandDispatcher>(TYPES.CommandDispatcher).to(CommandDispatcherImpl)
-container.bind<PQueue>(TYPES.PQueueHunter).toConstantValue(new PQueue({concurrency: 3}))
-container.bind<PQueue>(TYPES.PQueueTracker).toConstantValue(new PQueue({concurrency: 3}))
+container.bind<PQueue>(TYPES.PQueueHunter).toConstantValue(new PQueue({concurrency: 3, interval: 1000, intervalCap: 2}))
+container.bind<PQueue>(TYPES.PQueueTracker).toConstantValue(new PQueue({concurrency: 1}))
 container.bind<{currentProxy: number}>(TYPES.RoundRobin).toConstantValue(robin)
 container.bind<LaughingBreadEmoji>(TYPES.LaughingBreadEmoji).to(LaughingBreadEmoji)
 container.bind<WMAPI>(TYPES.WMAPI).toConstantValue(new WMAPI())
