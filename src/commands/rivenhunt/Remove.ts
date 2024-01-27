@@ -1,7 +1,6 @@
 import {Command} from "../Command";
 import {Message} from "discord.js";
 import {RivenHunter} from "../../features/RivenHunter";
-import PQueue from "p-queue";
 
 
 export class Remove implements Command {

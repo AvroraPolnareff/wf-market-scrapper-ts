@@ -86,7 +86,7 @@ ${positiveStats} / ${negativeStats}
 
       await msg.reply(question)
       while (!isValidPlatinumLimit(platinumLimit)) {
-        const platinumLimitRespond = await msg.channel.awaitMessages(m => !!parseInt(m.content), {max: 1})
+        const platinumLimitRespond = await msg.channel.awaitMessages({filter: m => !!parseInt(m.content), max: 1})
         platinumLimit = parseInt(platinumLimitRespond.first().content.trim())
         if (!isValidPlatinumLimit(platinumLimit)) await msg.reply("Enter valid limit!")
       }
@@ -96,7 +96,7 @@ ${positiveStats} / ${negativeStats}
       await rivenHunter.startHunting(urlEntity, msg.client,async (rivenMods, channel) => {
         const embeds = rivenMods.map(mod => makeEmbed(mod.auction, mod.bids))
         for (const embed of embeds) {
-          await channel.send(embed)
+          await channel.send({embeds: [embed]})
         }
     })
     }

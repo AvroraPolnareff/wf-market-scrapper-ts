@@ -9,6 +9,7 @@ import {LogglyLogger} from "./utility/LogglyLogger";
 import {ConsoleLogger} from "./utility/ConsoleLogger";
 import {LaughingBreadEmoji} from "./LaughingBreadEmoji";
 import {WMAPI} from "./api/WMAPI"
+import { ClientOptions } from "discord.js";
 config()
 
 const container = new Container()
@@ -16,7 +17,18 @@ const container = new Container()
 const robin =
   {currentProxy: 0}
 
-container.bind(TYPES.clientConfig).toConstantValue({})
+container.bind(TYPES.clientConfig).toConstantValue({
+  intents: [
+    "DirectMessages",
+    "DirectMessageReactions",
+    "GuildMessageReactions",
+    "GuildMessages",
+    "GuildMessageTyping",
+    "GuildMembers",
+    "Guilds",
+    "MessageContent",
+  ]
+} as ClientOptions)
 if (process.env.LOGGLY_TOKEN && process.env.LOGGLY_DOMAIN) {
     container.bind(TYPES.logglyToken).toConstantValue(process.env.LOGGLY_TOKEN)
     container.bind(TYPES.logglyDomain).toConstantValue(process.env.LOGGLY_DOMAIN)

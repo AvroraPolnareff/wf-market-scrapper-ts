@@ -14,7 +14,7 @@ export class List implements Command {
     async run(msg: Message, args?: string[]): Promise<void> {
         const userTracker = new UserTracker(msg.author.id, msg.client);
         const embed = await userTracker.list(msg.channel.id, msg.guild?.id ?? "")
-        await msg.reply(embed)
+        await msg.reply({embeds: [embed]})
     }
 
 }

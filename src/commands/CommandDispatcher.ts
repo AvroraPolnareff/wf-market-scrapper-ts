@@ -4,7 +4,7 @@ import {List} from "./rivenhunt/List";
 import {Add} from "./rivenhunt/Add";
 import {Remove} from "./rivenhunt/Remove";
 import {inject, injectable} from "inversify";
-import {Message, MessageEmbed, User} from "discord.js";
+import {EmbedBuilder, Message, User} from "discord.js";
 import {BreadUser as UserEntity} from "../db/entity/BreadUser";
 import TYPES from "../types/types";
 import PQueue from "p-queue";
@@ -46,7 +46,7 @@ export class CommandDispatcherImpl implements CommandDispatcher {
     async run(msg: Message) {
         if (msg.author.bot) return
         if (msg.member && msg.member.roles.cache.filter((value) => value.name === "The Bread Operator").size === 0) return
-        if (msg.content.startsWith("help")) await msg.reply(this.generateHelp())
+        if (msg.content.startsWith("help")) await msg.reply({embeds: [this.generateHelp()]})
         await this.addNewUser(msg.author)
         this.logger.info(`User ${msg.author.tag} send "${msg.content}".`)
 
@@ -80,13 +80,13 @@ export class CommandDispatcherImpl implements CommandDispatcher {
     }
 
     generateHelp() {
-        const embed = new MessageEmbed()
-        embed.title = "All Commands"
+        const embed = new EmbedBuilder()
+        embed.setTitle("All Commands")
         for (const command of this.commands) {
             const name = `${command.prefix ?? ""} ${command.name}`
             const aliases = command.aliases ? `\n Aliases: ${command.aliases.reduce((prev, curr) => prev + ", " + curr)}.` : ""
             const args = command.args ? ` [${Array.isArray(command.args) ? command.args.join(", ") : command.args}]` : ""
-            embed.addField(name + args , command.description + aliases)
+            embed.addFields({name: name + args , value: command.description + aliases})
         }
         return embed
     }

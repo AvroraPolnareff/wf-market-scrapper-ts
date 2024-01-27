@@ -1,4 +1,4 @@
-import {Client, DMChannel, MessageEmbed, TextChannel} from "discord.js";
+import {Client, DMChannel, EmbedBuilder, TextChannel} from "discord.js";
 import {Prey} from "../db/entity/Prey";
 import {Profile} from "./RivenHunter";
 import PQueue from "p-queue";
@@ -48,11 +48,9 @@ export class UserTracker {
     public list = async (channelId: string, guildId: string = '') => {
         const repository = dataSource.getRepository(Prey)
         const preys = await repository.find({where: {userId: this.userId, channelId: channelId, guildId: guildId}})
-        const embed = new MessageEmbed()
+        const embed = new EmbedBuilder()
         embed.setTitle('Users:')
-        preys.forEach((prey, index) => {
-            embed.addField(`**${index + 1}**`, `*${prey.nickname}*`)
-        })
+        embed.addFields(preys.map((prey, index) => ({name: `**${index + 1}**`, value: `*${prey.nickname}*`})))
         return embed
     }
 

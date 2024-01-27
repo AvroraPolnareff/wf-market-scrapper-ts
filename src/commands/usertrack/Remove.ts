@@ -1,6 +1,5 @@
 import {Command} from "../Command";
 import {Message} from "discord.js";
-import PQueue from "p-queue";
 import {UserTracker} from "../../features/UserTracker";
 
 export class Remove implements Command {

@@ -1,7 +1,6 @@
 import {Command} from "../Command";
-import {Message, MessageEmbed} from "discord.js";
+import {EmbedBuilder, Message} from "discord.js";
 
-import PQueue from "p-queue";
 import {RivenHunter} from "../../features/RivenHunter";
 
 
@@ -22,12 +21,12 @@ export class List implements Command {
             await msg.reply('List successfully deleted')
             return
         }
-        let embed : MessageEmbed
+        let embed: EmbedBuilder
         if (msg.guild) {
             embed = await rivenHunter.list(msg.channel.id, msg.guild.id)
         } else {
             embed = await rivenHunter.list(msg.channel.id)
         }
-        await msg.reply(embed)
+        await msg.reply({embeds: [embed]})
     }
 }

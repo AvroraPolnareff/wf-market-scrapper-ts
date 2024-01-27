@@ -1,9 +1,9 @@
 import * as _ from "lodash";
-import {MessageEmbed} from "discord.js";
+import {EmbedBuilder} from "discord.js";
 import {Attribute, Auction, Bid} from "../features/RivenHunter";
 import {weaponAttributes, weapons} from "../utility/weapon";
 
-export const makeEmbed = (riven: Auction, bids?: Bid[]) : MessageEmbed => {
+export const makeEmbed = (riven: Auction, bids?: Bid[]) : EmbedBuilder => {
     const weapon = weapons.find(weapon => weapon.url_name === riven.item.weapon_url_name)
 
     let embed = {
@@ -34,7 +34,7 @@ export const makeEmbed = (riven: Auction, bids?: Bid[]) : MessageEmbed => {
     if (bids?.length) {
       embed.fields.push(bidsAsField(bids))
     }
-    return new MessageEmbed(embed)
+    return EmbedBuilder.from(embed)
 }
 
 export const displayingPrice = (riven: Auction) => (

@@ -19,19 +19,21 @@ decorate(injectable(), EventEmitter)
 
 
 @injectable()
-export class LaughingBreadEmoji extends Client {
+export class LaughingBreadEmoji {
   constructor(
     @inject(TYPES.Logger) private logger: Logger,
     @inject(TYPES.PQueueTracker) private promiseQueueTracker: PQueue,
     @inject(TYPES.PQueueHunter) private promiseQueueHunter: PQueue,
     @inject(TYPES.CommandDispatcher) private commandDispatcher: CommandDispatcher,
-    @inject(TYPES.clientConfig) options?: ClientOptions
+    @inject(TYPES.clientConfig) private options?: ClientOptions
   ) {
-    super(options);
-    this.initClient()
+    this.discordClient = new Client(this.options)
   }
 
-  private initClient = async () => {
+  discordClient: Client
+
+  init = async () => {
+    await this.discordClient.login(process.env.DISCORD_TOKEN)
     this.promiseQueueTracker.on('active', () => {
       this.logger.debug(`Tracker: Size: ${this.promiseQueueTracker.size}  Pending: ${this.promiseQueueTracker.pending}`);
     })
@@ -39,14 +41,14 @@ export class LaughingBreadEmoji extends Client {
       this.logger.debug(`Hunter: Size: ${this.promiseQueueHunter.size}  Pending: ${this.promiseQueueHunter.pending}`);
     })
 
-    this.on('ready', async () => {
+    this.discordClient.on('ready', async () => {
       await dataSource.initialize()
-      this.logger.info(`Logged in as ${this.user.tag}!`)
+      this.logger.info(`Logged in as ${this.discordClient.user.tag}!`)
       const admins = process.env.ADMIN_ID.split(',')
       for (let adminId of admins) {
-        const admin = await this.users.fetch(adminId)
+        const admin = await this.discordClient.users.fetch(adminId)
         try {
-          await admin.send(`Logged in as ${this.user.tag}!`)
+          await admin.send(`Logged in as ${this.discordClient.user.tag}!`)
         } catch (e) {
           console.log("cannot send message", admin)
         }
@@ -58,7 +60,7 @@ export class LaughingBreadEmoji extends Client {
       const userEntities = await userRepository.find()
 
       for (let {userId} of userEntities) {
-        const user = await this.users.fetch(userId)
+        const user = await this.discordClient.users.fetch(userId)
         let preys = await preyRepository.find({where: {userId: userId}})
 
         // for (const prey of preys) {
@@ -77,17 +79,17 @@ export class LaughingBreadEmoji extends Client {
         const urlEntities = await urlRepository.find({where: {userId}})
         for (let urlEntity of urlEntities) {
           const rivenHunter = new RivenHunter(user.id)
-          await rivenHunter.startHunting(urlEntity, this, async (rivenMods, channel) => {
+          await rivenHunter.startHunting(urlEntity, this.discordClient, async (rivenMods, channel) => {
             const embeds = rivenMods.map(mod => makeEmbed(mod.auction, mod.bids))
             for (const embed of embeds) {
-              await channel.send(embed)
+              await channel.send({embeds: [embed]})
             }
           })
         }
       }
     })
 
-    this.on('message', async (msg: Message) => {
+    this.discordClient.on('message', async (msg: Message) => {
       await this.commandDispatcher.run(msg)
     })
   }

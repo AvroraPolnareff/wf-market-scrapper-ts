@@ -1,6 +1,6 @@
 import {MarketUrl} from "../db/entity/MarketUrl";
 import {DeleteResult} from "typeorm";
-import {Client, DMChannel, MessageEmbed, TextChannel} from "discord.js";
+import {Client, DMChannel, EmbedBuilder, TextChannel} from "discord.js";
 import PQueue from "p-queue";
 import {displayingPrice} from "../functions/embed";
 import {WMAPI} from "../api/WMAPI";
@@ -89,14 +89,12 @@ export class RivenHunter {
     const timer = setInterval(fn, 100000)
   }
 
-  public list = async (channelId: string, guildId?: string): Promise<MessageEmbed> => {
+  public list = async (channelId: string, guildId?: string): Promise<EmbedBuilder> => {
     const repository = dataSource.getRepository(MarketUrl)
     const urls = await repository.find({where: {userId: this.userId, channelId: channelId, guildId: guildId ?? ''}})
-    const embed = new MessageEmbed()
+    const embed = new EmbedBuilder()
     embed.setTitle('Riven Urls')
-    urls.forEach((url, index) => {
-      embed.addField(`**${index + 1}:**`, `*${url.url}* \n **Platinum limit**: ${url.platinumLimit}`, )
-    })
+    embed.addFields(urls.map((url, index)=> ({name: `**${index + 1}:**`, value: `*${url.url}* \n **Platinum limit**: ${url.platinumLimit}`})))
     return embed
   }
 

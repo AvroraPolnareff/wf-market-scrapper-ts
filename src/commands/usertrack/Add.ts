@@ -1,6 +1,5 @@
 import {Command} from "../Command";
-import {Message, MessageEmbed, TextChannel} from "discord.js";
-import PQueue from "p-queue";
+import {EmbedBuilder, Message} from "discord.js";
 import {Logger} from "../../utility/Logger";
 import {UserTracker} from "../../features/UserTracker";
 
@@ -32,9 +31,9 @@ export class Add implements Command{
             })
         } catch (e) {
             this.logger.error(e)
-            let embed = new MessageEmbed()
-            embed.addField("Error...", e.message)
-            await msg.reply(embed)
+            let embed = new EmbedBuilder()
+            embed.addFields({name: "Error...", value: e.message})
+            await msg.reply({embeds: [embed]})
         }
     }
 }
