@@ -4,18 +4,19 @@ import {CommandDispatcher} from "./commands/CommandDispatcher";
 import {BreadUser as UserEntity} from "./db/entity/BreadUser";
 import {MarketUrl} from "./db/entity/MarketUrl";
 import PQueue from "p-queue";
-import {getRepository} from "typeorm";
 import {decorate, inject, injectable} from "inversify";
 import TYPES from "./types/types";
 import {EventEmitter} from "events";
 import {Prey} from "./db/entity/Prey";
 import {RivenHunter} from "./features/RivenHunter";
 import {makeEmbed} from "./functions/embed";
-import {UserTracker} from "./features/UserTracker";
+import { dataSource } from "./db/dataSource";
 
 decorate(injectable(), Client)
 decorate(injectable(), BaseClient)
 decorate(injectable(), EventEmitter)
+
+
 
 @injectable()
 export class LaughingBreadEmoji extends Client {
@@ -30,7 +31,7 @@ export class LaughingBreadEmoji extends Client {
     this.initClient()
   }
 
-  private initClient = () => {
+  private initClient = async () => {
     this.promiseQueueTracker.on('active', () => {
       this.logger.debug(`Tracker: Size: ${this.promiseQueueTracker.size}  Pending: ${this.promiseQueueTracker.pending}`);
     })
@@ -39,6 +40,7 @@ export class LaughingBreadEmoji extends Client {
     })
 
     this.on('ready', async () => {
+      await dataSource.initialize()
       this.logger.info(`Logged in as ${this.user.tag}!`)
       const admins = process.env.ADMIN_ID.split(',')
       for (let adminId of admins) {
@@ -50,14 +52,14 @@ export class LaughingBreadEmoji extends Client {
         }
       }
 
-      const userRepository = getRepository(UserEntity)
-      const urlRepository = getRepository(MarketUrl)
-      const preyRepository = getRepository(Prey)
+      const userRepository = dataSource.getRepository(UserEntity)
+      const urlRepository = dataSource.getRepository(MarketUrl)
+      const preyRepository = dataSource.getRepository(Prey)
       const userEntities = await userRepository.find()
 
       for (let {userId} of userEntities) {
         const user = await this.users.fetch(userId)
-        let preys = await preyRepository.find({userId: userId})
+        let preys = await preyRepository.find({where: {userId: userId}})
 
         // for (const prey of preys) {
         //   const userTracker = new UserTracker(userId, this)
@@ -72,7 +74,7 @@ export class LaughingBreadEmoji extends Client {
         //   })
         // }
 
-        const urlEntities = await urlRepository.find({userId})
+        const urlEntities = await urlRepository.find({where: {userId}})
         for (let urlEntity of urlEntities) {
           const rivenHunter = new RivenHunter(user.id)
           await rivenHunter.startHunting(urlEntity, this, async (rivenMods, channel) => {

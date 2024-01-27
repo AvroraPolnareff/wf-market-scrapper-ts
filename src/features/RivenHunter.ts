@@ -1,14 +1,15 @@
 import {MarketUrl} from "../db/entity/MarketUrl";
-import {DeleteResult, getCustomRepository, getRepository} from "typeorm";
+import {DeleteResult} from "typeorm";
 import {Client, DMChannel, MessageEmbed, TextChannel} from "discord.js";
 import PQueue from "p-queue";
 import {displayingPrice} from "../functions/embed";
 import {WMAPI} from "../api/WMAPI";
-import {RivenListRepository} from "../db/repository/RivenListRepository";
+import {RivenListRepository, rivenListRepository} from "../db/repository/RivenListRepository";
 import {fetchChannel} from "../functions/fetchChannel";
 import {injectable} from "inversify"
 import TYPES from "../types/types"
 import container from "../inversify.config"
+import { dataSource } from "../db/dataSource";
 
 type AuctionWithBids = { auction: Auction, bids?: Bid[] }
 
@@ -19,8 +20,8 @@ export class RivenHunter {
   ) {}
 
   public add = async (url: string, platinumLimit: number, channelId: string, guildId?: string) => {
-    const urlRepository = getRepository(MarketUrl)
-    const urls = await urlRepository.find({userId: this.userId})
+    const urlRepository = dataSource.getRepository(MarketUrl)
+    const urls = await urlRepository.find({where: {userId: this.userId}})
 
     if (urls.some(entry => entry.url === url && entry.channelId === channelId && entry.guildId === (guildId ?? ''))) {
       throw Error("URL has been added.")
@@ -42,7 +43,7 @@ export class RivenHunter {
   public huntOnce = async (urlEntity: MarketUrl): Promise<AuctionWithBids[]> => {
     const promiseQueue: PQueue = container.get(TYPES.PQueueHunter)
     return await promiseQueue.add(async () => {
-      const rivenRepository = getCustomRepository(RivenListRepository)
+      const rivenRepository = rivenListRepository
       const rivenMods = await rivenRepository.fetchNewRivenMods(urlEntity.url)
       const auctionsWithBids: AuctionWithBids[] = []
       for (const el of rivenMods) {
@@ -66,9 +67,9 @@ export class RivenHunter {
     onNewRivenMods: (rivenMods: AuctionWithBids[], channel: TextChannel | DMChannel) => void
   ) => {
     const fn = async () => {
-      const urlRepository = getRepository(MarketUrl)
+      const urlRepository = dataSource.getRepository(MarketUrl)
 
-      const newUrlEntity = await urlRepository.find(urlEntity)
+      const newUrlEntity = await urlRepository.find({where: urlEntity})
       if (!newUrlEntity.length) {
         return clearInterval(timer)
       }
@@ -89,8 +90,8 @@ export class RivenHunter {
   }
 
   public list = async (channelId: string, guildId?: string): Promise<MessageEmbed> => {
-    const repository = getRepository(MarketUrl)
-    const urls = await repository.find({userId: this.userId, channelId: channelId, guildId: guildId ?? ''})
+    const repository = dataSource.getRepository(MarketUrl)
+    const urls = await repository.find({where: {userId: this.userId, channelId: channelId, guildId: guildId ?? ''}})
     const embed = new MessageEmbed()
     embed.setTitle('Riven Urls')
     urls.forEach((url, index) => {
@@ -100,14 +101,14 @@ export class RivenHunter {
   }
 
   public remove = async (index: number, channelId: string, guildId?: string): Promise<DeleteResult> => {
-    const urlRepository = getRepository(MarketUrl)
+    const urlRepository = dataSource.getRepository(MarketUrl)
 
-    const urls = await urlRepository.find({userId: this.userId, channelId: channelId, guildId: guildId ?? ''})
+    const urls = await urlRepository.find({where: {userId: this.userId, channelId: channelId, guildId: guildId ?? ''}})
     return await urlRepository.delete(urls[index])
   }
 
   public removeAll = async (channelId: string, guildId?: string): Promise<DeleteResult> => {
-    const urlRepository = getRepository(MarketUrl)
+    const urlRepository = dataSource.getRepository(MarketUrl)
     return await urlRepository.delete({userId: this.userId, channelId: channelId, guildId: guildId ?? ''})
   }
 }

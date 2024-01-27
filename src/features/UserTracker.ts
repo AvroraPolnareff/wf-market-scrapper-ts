@@ -1,5 +1,4 @@
 import {Client, DMChannel, MessageEmbed, TextChannel} from "discord.js";
-import {getRepository} from "typeorm";
 import {Prey} from "../db/entity/Prey";
 import {Profile} from "./RivenHunter";
 import PQueue from "p-queue";
@@ -7,6 +6,7 @@ import {WMAPI} from "../api/WMAPI";
 import {fetchChannel} from "../functions/fetchChannel";
 import container from "../inversify.config"
 import TYPES from "../types/types"
+import { dataSource } from "../db/dataSource";
 
 
 export class UserTracker {
@@ -17,14 +17,14 @@ export class UserTracker {
     }
 
     public remove = async (index: number, channelId: string, guildId = "") => {
-        const preyRepository = getRepository(Prey)
-        const preys = await preyRepository.find({channelId, guildId, userId: this.userId})
+        const preyRepository = dataSource.getRepository(Prey)
+        const preys = await preyRepository.find({where: {channelId, guildId, userId: this.userId}})
         return await preyRepository.delete(preys[index])
     }
 
     public add = async (profileURL: string, channelId: string, guildId: string = '') => {
-        const preyRepository = getRepository(Prey)
-        const preys  = await preyRepository.find({userId: this.userId})
+        const preyRepository = dataSource.getRepository(Prey)
+        const preys  = await preyRepository.find({where: {userId: this.userId}})
         const api = container.get<WMAPI>(TYPES.WMAPI)
         const nickname = profileURL.slice(profileURL.lastIndexOf('/') + 1)
         const profile = await api.profile(nickname)
@@ -46,8 +46,8 @@ export class UserTracker {
     }
 
     public list = async (channelId: string, guildId: string = '') => {
-        const repository = getRepository(Prey)
-        const preys = await repository.find({userId: this.userId, channelId: channelId, guildId: guildId})
+        const repository = dataSource.getRepository(Prey)
+        const preys = await repository.find({where: {userId: this.userId, channelId: channelId, guildId: guildId}})
         const embed = new MessageEmbed()
         embed.setTitle('Users:')
         preys.forEach((prey, index) => {
@@ -69,8 +69,8 @@ export class UserTracker {
       onStatusChanged: (profile: Profile, channel: TextChannel | DMChannel) => void
     ) => {
         const timer = setInterval(async  () => {
-            const preyRepository = getRepository(Prey)
-            const prey = await preyRepository.find({userId, channelId, guildId, nickname})
+            const preyRepository = dataSource.getRepository(Prey)
+            const prey = await preyRepository.find({where: {userId, channelId, guildId, nickname}})
             if (!prey.length) {
                 clearInterval(timer)
                 return

@@ -6,13 +6,13 @@ import {Remove} from "./rivenhunt/Remove";
 import {inject, injectable} from "inversify";
 import {Message, MessageEmbed, User} from "discord.js";
 import {BreadUser as UserEntity} from "../db/entity/BreadUser";
-import {getRepository} from "typeorm";
 import TYPES from "../types/types";
 import PQueue from "p-queue";
 import {Logger} from "../utility/Logger";
 import {Add as UserTrackAdd} from "./usertrack/Add"
 import {List as UserTrackList} from "./usertrack/List"
 import {Remove as UserTrackRemove} from "./usertrack/Remove"
+import { dataSource } from "../db/dataSource";
 
 export interface CommandDispatcher {
     commands: Command[]
@@ -93,8 +93,8 @@ export class CommandDispatcherImpl implements CommandDispatcher {
 
     async addNewUser(user: User): Promise<UserEntity> {
         const userId = user.id
-        const repository = getRepository(UserEntity)
-        const userEntity = await repository.findOne({userId: userId})
+        const repository = dataSource.getRepository(UserEntity)
+        const userEntity = await repository.findOne({where: {userId: userId}})
         if (!userEntity) {
             const newUser = new UserEntity()
             newUser.userId = userId

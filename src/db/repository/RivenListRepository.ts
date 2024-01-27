@@ -6,14 +6,14 @@ import * as _ from "lodash";
 import {inject, injectable} from "inversify"
 import TYPES from "../../types/types"
 import container from "../../inversify.config"
+import { dataSource } from "../dataSource";
 
-@EntityRepository(RivenList)
-export class RivenListRepository extends Repository<RivenList> {
-    constructor() {
-        super()
-    }
+
+export class RivenListRepository {
+    repo = dataSource.getRepository(RivenList)
+
     async findRivenListByUrl(url: string): Promise<Auction[]> {
-        const entity = await this.findOne({url: url})
+        const entity = await this.repo.findOne({where: {url: url}})
         if (entity) {
             return JSON.parse(entity.rivenList)
         } else {
@@ -23,14 +23,14 @@ export class RivenListRepository extends Repository<RivenList> {
 
     async saveRivenList(rivenList: Auction[], url: string) {
         const stringified = JSON.stringify(rivenList)
-        const oldList = await this.findOne({url: url})
+        const oldList = await this.repo.findOne({where: {url: url}})
         if (oldList) {
-            await this.delete(oldList.id)
+            await this.repo.delete(oldList.id)
         }
         const newList = new RivenList()
         newList.url = url
         newList.rivenList = stringified
-        return this.save(newList)
+        return this.repo.save(newList)
     }
 
     async fetchNewRivenMods(marketUrl: string)  {
@@ -63,3 +63,5 @@ export class RivenListRepository extends Repository<RivenList> {
       a.updated === b.updated
     )
 }
+
+export const rivenListRepository = new RivenListRepository()

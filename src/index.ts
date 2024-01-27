@@ -9,15 +9,15 @@ import {LaughingBreadEmoji} from "./LaughingBreadEmoji";
 config()
 
 const logger = container.get<Logger>(TYPES.Logger)
-const laughingBreadEmoji = container.get<LaughingBreadEmoji>(TYPES.LaughingBreadEmoji)
+const laughingBreadEmoji = container.get<LaughingBreadEmoji>(TYPES.LaughingBreadEmoji);
 
-createConnection().then(async () => {
-    laughingBreadEmoji.login(process.env.DISCORD_TOKEN)
-        .catch((e) => {
-            logger.error(e)
-        })
 
-}).catch(e => logger.error(e))
+laughingBreadEmoji.login(process.env.DISCORD_TOKEN)
+    .catch((e) => {
+        logger.error(e)
+    })
+
+
 
 
 
