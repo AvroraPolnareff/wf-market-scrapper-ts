@@ -1,4 +1,4 @@
-import {BaseClient, Client, ClientOptions, Message} from "discord.js";
+import {BaseClient, Client, ClientOptions, Events, Message} from "discord.js";
 import {Logger} from "./utility/Logger";
 import {CommandDispatcher} from "./commands/CommandDispatcher";
 import {BreadUser as UserEntity} from "./db/entity/BreadUser";
@@ -33,6 +33,7 @@ export class LaughingBreadEmoji {
   discordClient: Client
 
   init = async () => {
+    await dataSource.initialize()
     await this.discordClient.login(process.env.DISCORD_TOKEN)
     this.promiseQueueTracker.on('active', () => {
       this.logger.debug(`Tracker: Size: ${this.promiseQueueTracker.size}  Pending: ${this.promiseQueueTracker.pending}`);
@@ -41,8 +42,11 @@ export class LaughingBreadEmoji {
       this.logger.debug(`Hunter: Size: ${this.promiseQueueHunter.size}  Pending: ${this.promiseQueueHunter.pending}`);
     })
 
-    this.discordClient.on('ready', async () => {
-      await dataSource.initialize()
+    this.discordClient.on(Events.MessageCreate, async (msg: Message) => {
+      await this.commandDispatcher.run(msg)
+    })
+
+    this.discordClient.on(Events.ClientReady, async () => {
       this.logger.info(`Logged in as ${this.discordClient.user.tag}!`)
       const admins = process.env.ADMIN_ID.split(',')
       for (let adminId of admins) {
@@ -87,10 +91,6 @@ export class LaughingBreadEmoji {
           })
         }
       }
-    })
-
-    this.discordClient.on('message', async (msg: Message) => {
-      await this.commandDispatcher.run(msg)
     })
   }
 }
